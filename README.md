@@ -1,6 +1,6 @@
 Fileditch-embed-maker
 =====
-Python tool to automate the creation of movie/series embeds on discord.
+Python tool to automate the creation of embeds on Discord by uploading the file to FileDitch and embeding it with Discord.nfp.is.
 
 Contributions and Donations
 =====
