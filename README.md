@@ -1,2 +1,2 @@
 # Fileditch-embed-maker
-Python toool 
+Python tool to automate the creation of movie/series embeds on discord.
