@@ -13,5 +13,5 @@ Credits
 This Script is currently being updated and developed by @Glitchtest51.
 
 I Credit the following for their contributions that couldnt be possible without them:
-- @Sovimuffins for ideas, and for developing majority of the wiki.
-- @Starlovermwah bug testing, ideas, and help developing the wiki.
+- [@Sovimuffins](https://github.com/sovimuffins) for ideas, and for developing majority of the wiki.
+- [@Starlovermwah](https://github.com/Starlovermwah) bug testing, ideas, and help developing the wiki.
