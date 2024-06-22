@@ -10,7 +10,7 @@ Contributions and Donations
 =====
 Contributions are currently off, any pull requests made will be closed.
 
-I will not accept donations for this project, if you like it or find it helpful please star the repository.
+I will not accept donations for this project, if you like or find this project helpful please star the repository.
 
 License
 =====
