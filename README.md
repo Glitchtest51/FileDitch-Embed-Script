@@ -4,7 +4,7 @@ Python tool to automate the creation of embeds on Discord by uploading the file 
 
 How to use
 =====
-There would be something here, but the wiki is currently being recreated. Sorry!
+Please refer to the [Wiki](https://github.com/Glitchtest51/FileDitch-Embed-Script/wiki).
 
 Contributions and Donations
 =====
