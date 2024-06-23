@@ -77,7 +77,7 @@ def sendmessage(message:str, url, name=None, thread_id=None):
         print(f"Message sent successfully!\n")
     elif response.status_code == 429:
         wait = json.loads(response.text)["retry_after"]
-        print(f'You have been rate limited by discord. Retrying in {wait}')
+        print(f'You have been rate limited by Discord. Retrying in {wait}')
         time.sleep(wait)
         sendmessage(message, url, name, thread_id)
     else:
