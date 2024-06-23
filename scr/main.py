@@ -92,7 +92,7 @@ def make_embed(video, image):
     response = requests.post('https://discord.nfp.is/', data=data)
     if response.status_code == 200:
         if response.url == 'https://discord.nfp.is/':
-            print('You have been rate limited by discord.nfp.is links will no longer be shortened.')
+            print('You have been rate limited by discord.nfp.is. links will no longer be shortened.')
             return f'https://discord.nfp.is/?v={video}&i={image}'
         else:
             return response.url
@@ -149,16 +149,16 @@ def get_webhook_url():
         webhook_url = input('Webhook URL:  ')
 
         if not webhook_url.startswith("https://discord.com/api/webhooks"):
-            print("Webhook link has to be Discord.")
+            print("Webhook link has to be from Discord.")
         else:
             try:
                 response = requests.get(webhook_url)
                 if response.status_code == 200:
                     break
                 else:
-                    print("Incorrect Webhook link/Webook Does Not Exist.")
+                    print("Incorrect Webhook link/Webhook Does Not Exist.")
             except requests.exceptions.RequestException:
-                print("Incorrect Webhook link/Webook Does Not Exist.")
+                print("Incorrect Webhook link/Webhook Does Not Exist.")
     thread_or_fourm = option([
 #        "Forum Channel? (Will make a channel with the name provided.)",
         "Thread? (Will ask for Thread ID.)",
@@ -309,8 +309,8 @@ movie_or_series_list = [
 
 def main():
     choice = option([
-        "Upload a movie/series and send to discord", 
-        "Upload and make embed (Doesn't send on discord)",
+        "Upload a movie/series and send to Discord", 
+        "Upload and make embed (Doesn't send on Discord)",
         "Upload Only",  
         "Links to embed", 
         "Send txt to Discord",
