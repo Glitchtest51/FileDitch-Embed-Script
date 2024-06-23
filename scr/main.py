@@ -92,7 +92,7 @@ def make_embed(video, image):
     response = requests.post('https://discord.nfp.is/', data=data)
     if response.status_code == 200:
         if response.url == 'https://discord.nfp.is/':
-            print('You have been rate limited by discord.nfp.is, and links will no longer be shortened.')
+            print('You have been rate limited by discord.nfp.is, links will no longer be shortened.')
             return f'https://discord.nfp.is/?v={video}&i={image}'
         else:
             return response.url
