@@ -1,6 +1,6 @@
 FileDitch-Embed-Script
 =====
-Python tool to automate the creation of embeds on Discord by uploading the file to FileDitch and embeding it with Discord.nfp.is.
+Python tool to automate the creation of embeds on Discord by uploading the file to FileDitch and embeding it with discord.nfp.is.
 
 How to use
 =====
