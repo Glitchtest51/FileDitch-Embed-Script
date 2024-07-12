@@ -254,9 +254,7 @@ def upload(movie_or_series, embed, send_to_discord):
                 if folder:
                     # Start
                     alist=os.listdir(path)
-                    print(alist)
                     alist.sort(key=natural_keys)
-                    print(alist)
                     for file in alist:
                         i+=1
                         fileurl = uploadfile(os.path.join(path, file))
