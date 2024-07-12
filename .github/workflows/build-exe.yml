@@ -1,0 +1,79 @@
+name: Compile .exe
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10]
+        architecture: [x86, x64, ARM64]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.architecture }}
+
+    - name: Install dependencies And PyInstaller
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --onefile main.py
+
+    - name: Rename executable
+      run: |
+        ARCH_SUFFIX=$(echo ${{ matrix.architecture }} | tr '[:upper:]' '[:lower:]')
+        mv dist/main.exe dist/${{ github.event.repository.name }}-$ARCH_SUFFIX.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: executable-${{ matrix.architecture }}
+        path: dist/${{ github.event.repository.name }}-${{ matrix.architecture }}.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: executable-x86
+        path: ./dist
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: executable-x64
+        path: ./dist
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: executable-arm64
+        path: ./dist
+        
+    - name: Prepare for Release
+      run: |
+        echo "TAG=v$(date +%Y.%m.%d.%H.%M.%S)" >> $GITHUB_ENV
+        echo "NAME=${{ github.event.repository.name }}-v$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
+    - name: Create release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        automatic_release_tag: ${{ env.TAG }}
+        title: ${{ env.NAME }}
+        files: ./dist/*.exe
