@@ -15,9 +15,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.11.9
+        python-version: '3.10' 
         architecture: ${{ matrix.architecture }}
 
     - name: Install dependencies And PyInstaller
@@ -27,18 +27,13 @@ jobs:
         pip install pyinstaller
 
     - name: Build executable
-      run: pyinstaller --onefile main.py
-
-    - name: Rename executable
-      run: |
-        ARCH_SUFFIX=$(echo ${{ matrix.architecture }} | tr '[:upper:]' '[:lower:]')
-        mv dist/main.exe dist/${{ github.event.repository.name }}-$ARCH_SUFFIX.exe
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: Martin005/pyinstaller-action@v1.2.0
       with:
-        name: executable-${{ matrix.architecture }}
-        path: dist/${{ github.event.repository.name }}-${{ matrix.architecture }}.exe
+        spec: './main.py'
+        requirements: './requirements.txt'
+        options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
+        python_arch: ${{ matrix.architecture }}
+        upload_exe_with_name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
 
   release:
     needs: build
@@ -48,19 +43,19 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: executable-x86
+        name: ${{ github.event.repository.name }}-x86
         path: ./dist
 
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: executable-x64
+        name: ${{ github.event.repository.name }}-x64
         path: ./dist
 
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: executable-arm64
+        name: ${{ github.event.repository.name }}-arm64
         path: ./dist
         
     - name: Prepare for Release
