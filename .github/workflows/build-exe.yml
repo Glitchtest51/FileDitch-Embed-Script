@@ -22,16 +22,15 @@ jobs:
 
     - name: Install dependencies And PyInstaller
       run: |
-        cd scr
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r scr/requirements.txt
         pip install pyinstaller
 
     - name: Build executable
       uses: Martin005/pyinstaller-action@v1.2.0
       with:
-        spec: './main.py'
-        requirements: './requirements.txt'
+        spec: './scr/main.py'
+        requirements: './scr/requirements.txt'
         options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
         python_arch: ${{ matrix.architecture }}
         upload_exe_with_name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
