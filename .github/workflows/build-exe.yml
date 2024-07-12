@@ -57,9 +57,6 @@ jobs:
         echo "TAG=v$(date +%Y.%m.%d.%H.%M.%S)" >> $GITHUB_ENV
         echo "NAME=${{ github.event.repository.name }}-v$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
-    - name: List files for debugging
-      run: ls -la dist
-      
     - name: Create release
       uses: marvinpinto/action-automatic-releases@latest
       with:
