@@ -51,12 +51,6 @@ jobs:
       with:
         name: ${{ github.event.repository.name }}-x64
         path: ./dist
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: ${{ github.event.repository.name }}-arm64
-        path: ./dist
         
     - name: Prepare for Release
       run: |
