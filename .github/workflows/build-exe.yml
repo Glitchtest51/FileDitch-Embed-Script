@@ -64,4 +64,4 @@ jobs:
         prerelease: false
         automatic_release_tag: ${{ env.TAG }}
         title: ${{ env.NAME }}
-        files: ./dist/*.exe
+        files: dist/*.exe
