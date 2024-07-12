@@ -24,8 +24,8 @@ def requests_retry_session(
     session.mount('https://', adapter)
     return session
     
-def natural_keys(text):
-    return [ (int(c) if text.isdigit() else text) for c in re.split(r'(\d+)', text) ]
+def natural_keys(s):
+    return [int(text) if text.isdigit() else text.lower() for text in re.split('(\d+)', s)]
 
 def uploadfile(file:str):
     print(f'{os.path.basename(file)} is Uploading now.')
@@ -254,7 +254,9 @@ def upload(movie_or_series, embed, send_to_discord):
                 if folder:
                     # Start
                     alist=os.listdir(path)
+                    print(alist)
                     alist.sort(key=natural_keys)
+                    print(alist)
                     for file in alist:
                         i+=1
                         fileurl = uploadfile(os.path.join(path, file))
