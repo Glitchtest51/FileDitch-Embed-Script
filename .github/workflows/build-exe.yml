@@ -52,19 +52,14 @@ jobs:
         name: ${{ github.event.repository.name }}-x64
         path: ./dist
         
-    - name: Install unzip utility And Unzip files
-      run: |
-        sudo apt-get install -y unzip
-        for file in dist/*.zip; do
-          unzip -o "$file" -d dist/
-          rm "$file"
-        done
-        
     - name: Prepare for Release
       run: |
         echo "TAG=v$(date +%Y.%m.%d.%H.%M.%S)" >> $GITHUB_ENV
         echo "NAME=${{ github.event.repository.name }}-v$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
+    - name: List files for debugging
+      run: ls -la dist
+      
     - name: Create release
       uses: marvinpinto/action-automatic-releases@latest
       with:
