@@ -33,7 +33,10 @@ jobs:
         requirements: './scr/requirements.txt'
         options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
         python_arch: ${{ matrix.architecture }}
-        upload_exe_with_name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
+    - uses: actions/upload-artifact@v4
+      with: 
+        name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
+        path: ./dist/*.exe
 
   release:
     needs: build
