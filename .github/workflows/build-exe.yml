@@ -41,13 +41,13 @@ jobs:
 
     steps:
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: ${{ github.event.repository.name }}-x86
         path: ./dist
 
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: ${{ github.event.repository.name }}-x64
         path: ./dist
