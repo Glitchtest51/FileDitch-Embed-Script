@@ -47,7 +47,7 @@ def uploadfile(file:str):
 
     multipart_data = MultipartEncoder(
         fields={
-            'files[]': (Path(file).name, open(file, 'rb'), 'text/plain')
+            'files[]': (Path(file).name, open(file, 'rb'), 'application/octet-stream')
         }
     )
 
