@@ -58,7 +58,7 @@ jobs:
     - name: Prepare for Release
       run: |
         echo "TAG=v$(date +%Y.%m.%d.%H.%M.%S)" >> $GITHUB_ENV
-        echo "NAME=${{ github.event.repository.name }}-v$(date +%Y-%m-%d)" >> $GITHUB_ENV
+        echo "NAME=${{ github.event.repository.name }}-v$(date +%Y-%m-%d)-files.vc" >> $GITHUB_ENV
 
     - name: Create release
       uses: marvinpinto/action-automatic-releases@latest
