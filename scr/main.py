@@ -5,400 +5,415 @@ from pathlib import Path
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-def requests_retry_session(
-    retries=3,
-    backoff_factor=0.3,
-    status_forcelist=(500, 502, 504),
-    session=None,
-):
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
-    
-def natural_keys(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split('(\d+)', s)]
+class script():
+    def __init__(self):
+        self.DEFAULT_DIR_TOGGLE = False
+        self.movie_or_series_list = ["Movie", "Series"]
+        self.apitoken = ''
 
-def uploadfile(file:str):
-    print(f'{os.path.basename(file)} is Uploading now.')
-    start_time = time.time()
+    class _Menu(Exception): pass
 
-    def callback(monitor):
-        elapsed_time = time.time() - start_time
-        speed = monitor.bytes_read / elapsed_time / (1024 * 1024)
-
-        if speed > 0:
-            remaining_time = (monitor.len - monitor.bytes_read) / (speed * 1024 * 1024)
-            eta=f"{remaining_time:.2f} seconds"
-        else:
-            eta='♾️ seconds'
-
-        pbar.set_postfix({"Speed": f"{speed:.2f} MB/s", "ETA": eta})
-        progress = (monitor.bytes_read / monitor.len) * 100
-        pbar.update(round(progress, 2) - pbar.n)
-
-    multipart_data = MultipartEncoder(
-        fields={
-            'file': (Path(file).name, open(file, 'rb'), 'application/octet-stream')
-        }
-    )
-    headers = {'Content-Type': multipart_data.content_type}
-    if apitoken:
-        headers.update({'X-Account-ID': apitoken})
-
-    pbar = tqdm(total=100, desc="Upload Progress", unit="%", bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}{postfix}')
-    try:
-        response = requests_retry_session(retries=20, backoff_factor=60).post('https://api.files.vc/upload', data=MultipartEncoderMonitor(multipart_data, callback), headers=headers)
-    except Exception as x:
-        print('It failed :', x.__class__.__name__)
-    pbar.set_postfix(eta="Almost there...")
-    
-    if response.status_code == 200:
-        pbar.set_postfix(eta="Done")
-        pbar.close()
-        print(f"File uploaded successfully!\n")
-        return json.loads(response.text)["file_url"]
-    else:
-        pbar.set_postfix(eta="Error")
-        pbar.close()
-        print(f"Failed to upload. Status code: {response.status_code}")
+    def requests_retry_session(self,
+        retries=3,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+        session=None,
+    ):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
         
-def sendmessage(message:str, url, name=None, thread_id=None):
-    payload = {"content": message}
-    if name: payload["thread_name"]=name
-    response = requests.post(f'{url}?thread_id={thread_id}' if thread_id else url, json=payload)
+    def natural_keys(self, s):
+        return [int(text) if text.isdigit() else text.lower() for text in re.split('(\d+)', s)]
 
-    if response.status_code == 204:
-        print(f"Message sent successfully!\n")
-    elif response.status_code == 429:
-        wait = json.loads(response.text)["retry_after"]
-        print(f'You have been rate limited by Discord. Retrying in {wait}')
-        time.sleep(wait)
-        sendmessage(message, url, name, thread_id)
-    else:
-        print(f"Failed to send message. Status code: {response.status_code}\n")
+    def uploadfile(self, file:str):
+        if not self.apitoken:
+            print("Would you like to set your Account ID?")
+            if self.option(["Yes", "No"]) == 1:
+                self.apitoken = self.set_apitoken()
 
-def make_embed(video, image):
-    data = {
-        'video': video,
-        'image': image
-    }
+        print(f'{os.path.basename(file)} is Uploading now.')
+        start_time = time.time()
 
-    response = requests.post('https://discord.nfp.is/', data=data)
-    if response.status_code == 200:
-        if response.url == 'https://discord.nfp.is/':
-            print('You have been rate limited by discord.nfp.is, links will no longer be shortened.')
-            return f'https://discord.nfp.is/?v={video}&i={image}'
-        else:
-            return response.url
-    else:
-        print(f"Failed to Make Embed. Status code: {response.status_code}")
+        def callback(monitor):
+            elapsed_time = time.time() - start_time
+            speed = monitor.bytes_read / elapsed_time / (1024 * 1024)
 
-def option(list):
-    choices = [str(i) for i in range(1, len(list)+1)]
-    print(f"Choose a option:  ")
-    for i in range(len(list)):
-        print(f"{i+1}. {list[i]}")
-    while True:
-        choice = input(f"Option:  ")
-        print("")
-        if choice in choices:
-            choice = int(choice)
-            break
-        else:
-            print(f'\nInvalid choice. Please choose again.')
-    return choice
-
-def set_apitoken():
-    apitoken = input("Files.vc Account ID:  ")
-
-    if os.path.exists(file_path):
-        return apitoken
-    else:
-        print(f"Invalid Account ID.\n")
-
-def get_path():
-    while True:
-        file_path = input("Path:  ").replace('"', "")
-        if file_path.startswith('& '): file_path = file_path[2:]
-
-        if os.path.exists(file_path):
-            return file_path
-        else:
-            print(f"Invalid path.\n")
-
-def get_file_path():
-    while True:
-        path = get_path()
-        if os.path.isfile(path):
-            return path
-        else:
-            print(f"Invalid path (File Path Not Folder).\n")
-
-def get_txt_path():
-    while True:
-        allowed_formats = ['.txt']
-        
-        path = get_file_path()
-        _, file_extension = os.path.splitext(path)
-
-        if file_extension.lower() in allowed_formats:
-            return path
-        else:
-            print("The file is not a .txt file.")
-
-def get_webhook_url():
-    while True:
-        webhook_url = input('Webhook URL:  ')
-
-        if not webhook_url.startswith("https://discord.com/api/webhooks"):
-            print("Webhook link has to be from Discord.")
-        else:
-            try:
-                response = requests.get(webhook_url)
-                if response.status_code == 200:
-                    break
-                else:
-                    print("Incorrect Webhook link/Webhook Does Not Exist.")
-            except requests.exceptions.RequestException:
-                print("Incorrect Webhook link/Webhook Does Not Exist.")
-    thread_or_fourm = option([
-#        "Forum Channel? (Will make a channel with the name provided.)",
-        "Thread? (Will ask for Thread ID.)",
-        "None of the above."
-    ])
-    Fourm_Name=None
-    Thread_ID=None
-    match thread_or_fourm:
-        case 1:
-#            Fourm_Name = input("Forum Name:  ")
-#        case 2:
-            Thread_ID = input("Thread ID:  ")
-    return webhook_url, Fourm_Name, Thread_ID
-
-def upload(movie_or_series, embed, send_to_discord):
-    # Start
-    folder_or_path = option([
-        f"Pull files from ./Upload{movie_or_series_list[movie_or_series-1]}",
-        "Pull from path"
-    ])
-    folder = False   
-    match folder_or_path:
-        case 1:
-            folder = True
-            if DEFAULT_DIR_TOGGLE:
-                path = get_path()
+            if speed > 0:
+                remaining_time = (monitor.len - monitor.bytes_read) / (speed * 1024 * 1024)
+                eta=f"{remaining_time:.2f} seconds"
             else:
-                if movie_or_series == 1:
-                    path = './UploadMovie/'
-                elif movie_or_series == 2:
-                    path = './UploadSeries/'
-                    
-            os.makedirs(path, exist_ok=True)
+                eta='♾️ seconds'
 
-            if len(os.listdir(path)) == 0:
-                print(f"Folder is empty. Please place files in the folder.\n")
-                raise _Menu()
+            pbar.set_postfix({"Speed": f"{speed:.2f} MB/s", "ETA": eta})
+            progress = (monitor.bytes_read / monitor.len) * 100
+            pbar.update(round(progress, 2) - pbar.n)
 
-        case 2: 
-            folder = False
+        multipart_data = MultipartEncoder(
+            fields={
+                'file': (Path(file).name, open(file, 'rb'), 'application/octet-stream')
+            }
+        )
+        headers = {'Content-Type': multipart_data.content_type}
+        if self.apitoken:
+            headers.update({'X-Account-ID': self.apitoken})
 
-    while True:
-        if not ((folder) and (movie_or_series == 1)):
-            if embed:
-                image = input('Thumbnail URL:  ')
-            name = input(f'{movie_or_series_list[movie_or_series-1]} name:  ')
-            hs = open(f"{name}.txt","a")
+        pbar = tqdm(total=100, desc="Upload Progress", unit="%", bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}{postfix}')
+        try:
+            response = self.requests_retry_session(retries=20, backoff_factor=60).post('https://api.files.vc/upload', data=MultipartEncoderMonitor(multipart_data, callback), headers=headers)
+        except Exception as x:
+            print('It failed :', x.__class__.__name__)
+        pbar.set_postfix(eta="Almost there...")
+        
+        if response.status_code == 200:
+            pbar.set_postfix(eta="Done")
+            pbar.close()
+            print(f"File uploaded successfully!\n")
+            return json.loads(response.text)["file_url"]
+        else:
+            pbar.set_postfix(eta="Error")
+            pbar.close()
+            print(f"Failed to upload. Status code: {response.status_code}, Response: {response.text}")
+            
+    def sendmessage(self, message:str, url, name=None, thread_id=None):
+        payload = {"content": message}
+        if name: payload["thread_name"]=name
+        response = requests.post(f'{url}?thread_id={thread_id}' if thread_id else url, json=payload)
 
-        if send_to_discord:
-            webhook_url, Fourm_Name, Thread_ID = get_webhook_url()
+        if response.status_code == 204:
+            print(f"Message sent successfully!\n")
+        elif response.status_code == 429:
+            wait = json.loads(response.text)["retry_after"]
+            print(f'You have been rate limited by Discord. Retrying in {wait}')
+            time.sleep(wait)
+            self.sendmessage(message, url, name, thread_id)
+        else:
+            print(f"Failed to send message. Status code: {response.status_code}\n")
 
-        match movie_or_series:
-            case 1:
-                # Start
-                if folder:
-                    alist=os.listdir(path)
-                    alist.sort(key=natural_keys)
-                    for file in alist:
-                        if embed:
-                            image = input('Thumbnail URL:  ')
-                        name = input(f'Movie name:  ')
-                        hs = open(f"{name}.txt","a")
+    def make_embed(self, video, image):
+        data = {
+            'video': video,
+            'image': image
+        }
 
-                        fileurl = uploadfile(os.path.join(path, file))
+        response = requests.post('https://discord.nfp.is/', data=data)
+        if response.status_code == 200:
+            if response.url == 'https://discord.nfp.is/':
+                print('You have been rate limited by discord.nfp.is, links will no longer be shortened.')
+                return f'https://discord.nfp.is/?v={video}&i={image}'
+            else:
+                return response.url
+        else:
+            print(f"Failed to Make Embed. Status code: {response.status_code}")
 
-                        if embed:
-                            message = f'[{name}]({make_embed(fileurl, image)})\n'
-                        else:
-                            message = f'{fileurl}\n'
-                        hs.write(message)
-                        if send_to_discord:
-                            sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
+    def option(self, list):
+        choices = [str(i) for i in range(1, len(list)+1)]
+        print(f"Choose a option:  ")
+        for i in range(len(list)):
+            print(f"{i+1}. {list[i]}")
+        while True:
+            choice = input(f"Option:  ")
+            print("")
+            if choice in choices:
+                choice = int(choice)
+                break
+            else:
+                print(f'\nInvalid choice. Please choose again.')
+        return choice
 
-                        hs.close()
-                else:
-                    path = get_file_path()
-                    fileurl = uploadfile(path)
+    def set_apitoken(self):
+        while True:
+            id = input("Files.vc Account ID (press enter for none):  ")
+            # files = []
 
-                    if embed:
-                        message = f'[{name}]({make_embed(fileurl, image)})\n'
+            # if not id == '':
+            #     response = requests.get(f"https://api.files.vc/api/account/files?account_id={id}")
+            #     json_response = json.loads(response.text)
+            #     print(json_response)
+            #     files = json_response['files']
+
+            # if not len(files) == 0 or id == '':
+            if len(id) == 16 or id == '':
+                return id
+            else:
+                print(f"Invalid Account ID.\n")    
+
+    def get_path(self):
+        while True:
+            file_path = input("Path:  ").replace('"', "")
+            if file_path.startswith('& '): file_path = file_path[2:]
+
+            if os.path.exists(file_path):
+                return file_path
+            else:
+                print(f"Invalid path.\n")
+
+    def get_file_path(self):
+        while True:
+            path = self.get_path()
+            if os.path.isfile(path):
+                return path
+            else:
+                print(f"Invalid path (File Path Not Folder).\n")
+
+    def get_txt_path(self):
+        while True:
+            allowed_formats = ['.txt']
+            
+            path = self.get_file_path()
+            _, file_extension = os.path.splitext(path)
+
+            if file_extension.lower() in allowed_formats:
+                return path
+            else:
+                print("The file is not a .txt file.")
+
+    def get_webhook_url(self):
+        while True:
+            webhook_url = input('Webhook URL:  ')
+
+            if not webhook_url.startswith("https://discord.com/api/webhooks"):
+                print("Webhook link has to be from Discord.")
+            else:
+                try:
+                    response = requests.get(webhook_url)
+                    if response.status_code == 200:
+                        break
                     else:
-                        message = f'{fileurl}\n'
-                    hs.write(message)
-                    if send_to_discord:
-                        sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
+                        print("Incorrect Webhook link/Webhook Does Not Exist.")
+                except requests.exceptions.RequestException:
+                    print("Incorrect Webhook link/Webhook Does Not Exist.")
+        thread_or_fourm = self.option([
+    #        "Forum Channel? (Will make a channel with the name provided.)",
+            "Thread? (Will ask for Thread ID.)",
+            "None of the above."
+        ])
+        Fourm_Name=None
+        Thread_ID=None
+        match thread_or_fourm:
+            case 1:
+    #            Fourm_Name = input("Forum Name:  ")
+    #        case 2:
+                Thread_ID = input("Thread ID:  ")
+        return webhook_url, Fourm_Name, Thread_ID
 
-                hs.close()
-                # End
-
-            case 2:
-                # Start
-                i = 0
-                if folder:
-                    # Start
-                    alist=os.listdir(path)
-                    alist.sort(key=natural_keys)
-                    for file in alist:
-                        i+=1
-                        fileurl = uploadfile(os.path.join(path, file))
-                        if embed:
-                            message = f'[{name} - Episode {i}]({make_embed(fileurl, image)})\n'
-                        else:
-                            message = f'{fileurl}\n'
-                        hs.write(message)
-                        if send_to_discord:
-                            sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
-                    # End
+    def upload(self, movie_or_series, embed, send_to_discord):
+        # Start
+        folder_or_path = self.option([
+            f"Pull files from ./Upload{self.movie_or_series_list[movie_or_series-1]}",
+            "Pull from path"
+        ])
+        folder = False   
+        match folder_or_path:
+            case 1:
+                folder = True
+                if self.DEFAULT_DIR_TOGGLE:
+                    path = self.get_path()
                 else:
-                    # Start
-                    while True:
-                        try:
-                            num = int(input('How Many Episodes:  '))
-                            break
-                        except ValueError:
-                            print("Please enter a valid integer.") 
-
-                    for i in range(num):
-                        i+=1
-
-                        path = get_file_path()
+                    if movie_or_series == 1:
+                        path = './UploadMovie/'
+                    elif movie_or_series == 2:
+                        path = './UploadSeries/'
                         
-                        fileurl = uploadfile(path)
+                os.makedirs(path, exist_ok=True)
+
+                if len(os.listdir(path)) == 0:
+                    print(f"Folder is empty. Please place files in the folder.\n")
+                    raise self._Menu()
+
+            case 2: 
+                folder = False
+
+        while True:
+            if not ((folder) and (movie_or_series == 1)):
+                if embed:
+                    image = input('Thumbnail URL:  ')
+                name = input(f'{self.movie_or_series_list[movie_or_series-1]} name:  ')
+                hs = open(f"{name}.txt","a")
+
+            if send_to_discord:
+                webhook_url, Fourm_Name, Thread_ID = self.get_webhook_url()
+
+            match movie_or_series:
+                case 1:
+                    # Start
+                    if folder:
+                        alist=os.listdir(path)
+                        alist.sort(key=self.natural_keys)
+                        for file in alist:
+                            if embed:
+                                image = input('Thumbnail URL:  ')
+                            name = input(f'Movie name:  ')
+                            hs = open(f"{name}.txt","a")
+
+                            fileurl = self.uploadfile(os.path.join(path, file))
+
+                            if embed:
+                                message = f'[{name}]({self.make_embed(fileurl, image)})\n'
+                            else:
+                                message = f'{fileurl}\n'
+                            hs.write(message)
+                            if send_to_discord:
+                                self.sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
+
+                            hs.close()
+                    else:
+                        path = self.get_file_path()
+                        fileurl = self.uploadfile(path)
+
                         if embed:
-                            message = f'[{name} - Episode {i}]({make_embed(fileurl, image)})\n'
+                            message = f'[{name}]({self.make_embed(fileurl, image)})\n'
                         else:
                             message = f'{fileurl}\n'
                         hs.write(message)
                         if send_to_discord:
-                            sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
-                    # End
-                # End
-
-        hs.close()
-
-        print(f"\nWould You Like To Do Another {movie_or_series_list[movie_or_series-1]}?")
-        if option(["Yes", "No"]) == 2:
-            break
-    # End
-
-class _Menu(Exception): pass
-
-DEFAULT_DIR_TOGGLE = False
-
-movie_or_series_list = [
-    "Movie", 
-    "Series"
-]
-
-def main():
-    choice = option([
-        "Upload a movie/series and send to Discord", 
-        "Upload and make embed (Doesn't send on Discord)",
-        "Upload Only",  
-        "Links to embed", 
-        "Send txt to Discord",
-        "Exit"
-    ]) 
-
-    if choice not in [5, 6]:
-        movie_or_series = option(movie_or_series_list) 
-    try:
-        match choice:
-            case 1 | 2 | 3:
-                # Start
-                match choice:
-                    case 1:
-                        upload(movie_or_series, True, True)
-                    case 2:
-                        upload(movie_or_series, True, False)
-                    case 3:
-                        upload(movie_or_series, False, False)
-                # End
-
-            case 4:
-                # Start
-                while True:
-                    path = get_txt_path()
-
-                    file = open(path, 'r', encoding='utf-8')
-                    Lines = file.readlines()
-
-                    match movie_or_series:
-                        case 1:
-                            # Start
-                            for line in Lines:
-                                image = input('Thumbnail URL:  ')
-                                name = input('Movie name:  ')
-
-                                hs = open(f"{name}.txt","a")
-
-                                hs.write(f'[{name}]({make_embed(" ".join(line.split()), image)})\n')
-                                hs.close()
-                            # End
-
-                        case 2:
-                            # Start
-                            image = input('Thumbnail URL:  ')
-                            name = input('Series name:  ')
-
-                            hs = open(f"{name}.txt","a")
-                            i = 0
-                            for line in Lines:
-                                i += 1
-                                hs.write(f'[{name} - Episode {i}]({make_embed(" ".join(line.split()), image)})\n')
-                            # End
+                            self.sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
 
                     hs.close()
+                    # End
 
-                    print(f"\nWould You Like To Do Another {movie_or_series_list[movie_or_series-1]}?")
-                    if option(["Yes", "No"]) == 2:
-                        break
-                # End
+                case 2:
+                    # Start
+                    i = 0
+                    if folder:
+                        # Start
+                        alist=os.listdir(path)
+                        alist.sort(key=self.natural_keys)
+                        for file in alist:
+                            i+=1
+                            fileurl = self.uploadfile(os.path.join(path, file))
+                            if embed:
+                                message = f'[{name} - Episode {i}]({self.make_embed(fileurl, image)})\n'
+                            else:
+                                message = f'{fileurl}\n'
+                            hs.write(message)
+                            if send_to_discord:
+                                self.sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
+                        # End
+                    else:
+                        # Start
+                        while True:
+                            try:
+                                num = int(input('How Many Episodes:  '))
+                                break
+                            except ValueError:
+                                print("Please enter a valid integer.") 
 
-            case 5:
-                webhook_url, Fourm_Name, Thread_ID = get_webhook_url()
-                file = open(get_txt_path(), 'r', encoding='utf-8')
-                Lines = file.readlines()
-                
-                count = 0
-                for line in Lines:
-                    count += 1
-                    sendmessage(line, webhook_url, Fourm_Name, Thread_ID)
-                    time.sleep(0.2)
-            case 6:
-                return
-    except _Menu:
-        pass
-        
-    main()
+                        for i in range(num):
+                            i+=1
 
-apitoken = input("Files.vc Account ID")
-main()
+                            path = self.get_file_path()
+                            
+                            fileurl = self.uploadfile(path)
+                            if embed:
+                                message = f'[{name} - Episode {i}]({self.make_embed(fileurl, image)})\n'
+                            else:
+                                message = f'{fileurl}\n'
+                            hs.write(message)
+                            if send_to_discord:
+                                self.sendmessage(message, webhook_url, Fourm_Name, Thread_ID)
+                        # End
+                    # End
+
+            hs.close()
+
+            print(f"\nWould You Like To Do Another {self.movie_or_series_list[movie_or_series-1]}?")
+            if self.option(["Yes", "No"]) == 2:
+                break
+        # End
+
+    def main(self):
+        choice = self.option([
+            "Upload a movie/series and send to Discord", 
+            "Upload and make embed (Doesn't send on Discord)",
+            "Upload Only",  
+            "Links to embed", 
+            "Send txt to Discord",
+            "Set Files.VC Account ID",
+            "Exit"
+        ]) 
+
+        if choice not in [5, 6, 7]:
+            movie_or_series = self.option(self.movie_or_series_list) 
+        try:
+            match choice:
+                case 1 | 2 | 3:
+                    # Start
+                    match choice:
+                        case 1:
+                            self.upload(movie_or_series, True, True)
+                        case 2:
+                            self.upload(movie_or_series, True, False)
+                        case 3:
+                            self.upload(movie_or_series, False, False)
+                    # End
+
+                case 4:
+                    # Start
+                    while True:
+                        path = self.get_txt_path()
+
+                        file = open(path, 'r', encoding='utf-8')
+                        Lines = file.readlines()
+
+                        match movie_or_series:
+                            case 1:
+                                # Start
+                                for line in Lines:
+                                    image = input('Thumbnail URL:  ')
+                                    name = input('Movie name:  ')
+
+                                    hs = open(f"{name}.txt","a")
+
+                                    hs.write(f'[{name}]({self.make_embed(" ".join(line.split()), image)})\n')
+                                    hs.close()
+                                # End
+
+                            case 2:
+                                # Start
+                                image = input('Thumbnail URL:  ')
+                                name = input('Series name:  ')
+
+                                hs = open(f"{name}.txt","a")
+                                i = 0
+                                for line in Lines:
+                                    i += 1
+                                    hs.write(f'[{name} - Episode {i}]({self.make_embed(" ".join(line.split()), image)})\n')
+                                # End
+
+                        hs.close()
+
+                        print(f"\nWould You Like To Do Another {self.movie_or_series_list[movie_or_series-1]}?")
+                        if self.option(["Yes", "No"]) == 2:
+                            break
+                    # End
+
+                case 5:
+                    webhook_url, Fourm_Name, Thread_ID = self.get_webhook_url()
+                    file = open(self.get_txt_path(), 'r', encoding='utf-8')
+                    Lines = file.readlines()
+                    
+                    count = 0
+                    for line in Lines:
+                        count += 1
+                        self.sendmessage(line, webhook_url, Fourm_Name, Thread_ID)
+                        time.sleep(0.2)
+                case 6:
+                    apitoken = self.set_apitoken()
+                case 7:
+                    return
+        except self._Menu:
+            pass
+            
+        self.main()
+
+script().main()
