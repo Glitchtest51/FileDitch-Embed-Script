@@ -47,13 +47,16 @@ def uploadfile(file:str):
 
     multipart_data = MultipartEncoder(
         fields={
-            'files[]': (Path(file).name, open(file, 'rb'), 'application/octet-stream')
+            'file': (Path(file).name, open(file, 'rb'), 'application/octet-stream')
         }
     )
+    headers = {'Content-Type': multipart_data.content_type}
+    if apitoken:
+        headers.update({'X-Account-ID': apitoken})
 
     pbar = tqdm(total=100, desc="Upload Progress", unit="%", bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}{postfix}')
     try:
-        response = requests_retry_session(retries=20, backoff_factor=60).post('https://up1.fileditch.com/upload.php', data=MultipartEncoderMonitor(multipart_data, callback), headers={'Content-Type': multipart_data.content_type})
+        response = requests_retry_session(retries=20, backoff_factor=60).post('https://api.files.vc/upload', data=MultipartEncoderMonitor(multipart_data, callback), headers=headers)
     except Exception as x:
         print('It failed :', x.__class__.__name__)
     pbar.set_postfix(eta="Almost there...")
@@ -62,7 +65,7 @@ def uploadfile(file:str):
         pbar.set_postfix(eta="Done")
         pbar.close()
         print(f"File uploaded successfully!\n")
-        return json.loads(response.text)["files"][0]["url"]
+        return json.loads(response.text)["file_url"]
     else:
         pbar.set_postfix(eta="Error")
         pbar.close()
@@ -113,6 +116,14 @@ def option(list):
         else:
             print(f'\nInvalid choice. Please choose again.')
     return choice
+
+def set_apitoken():
+    apitoken = input("Files.vc Account ID:  ")
+
+    if os.path.exists(file_path):
+        return apitoken
+    else:
+        print(f"Invalid Account ID.\n")
 
 def get_path():
     while True:
@@ -389,4 +400,5 @@ def main():
         
     main()
 
+apitoken = input("Files.vc Account ID")
 main()
