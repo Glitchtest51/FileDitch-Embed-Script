@@ -24,6 +24,6 @@ This Script is currently being updated and developed by [@Glitchtest51](https://
 
 I Credit the following for their contributions that couldnt be possible without them:
 - [@sovimuffins](https://github.com/sovimuffins) for ideas, and for developing majority of the wiki.
-- [@starlover0104](https://github.com/starlover0104) bug testing, ideas, and help developing the wiki.
+- [@drew-codes-things](https://github.com/drew-codes-things) bug testing, ideas, and help developing the wiki.
 - The creator of [discord.nfp.is](https://discord.nfp.is) for the embed service.
 - mystique_s on Discord for [FileDitch](https://fileditch.com).
