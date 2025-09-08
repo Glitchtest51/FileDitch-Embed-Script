@@ -34,7 +34,7 @@ jobs:
         options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
         python_arch: ${{ matrix.architecture }}
         
-    - uses: actions/upload-artifact@latest
+    - uses: actions/upload-artifact@v4
       with: 
         name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
         path: ./dist/*.exe
@@ -47,13 +47,8 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v5.0.0
       with:
-        name: ${{ github.event.repository.name }}-x86
-        path: ./dist
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v5.0.0
-      with:
-        name: ${{ github.event.repository.name }}-x64
+        name: ${{ github.event.repository.name }}-*\
+        merge-multiple: true
         path: ./dist
         
     - name: Prepare for Release
