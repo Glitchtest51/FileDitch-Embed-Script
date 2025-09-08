@@ -26,14 +26,6 @@ jobs:
         pip install -r scr/requirements.txt
         pip install pyinstaller
 
-    # - name: Build executable
-    #   uses: Martin005/pyinstaller-action@v1.2.0
-    #   with:
-    #     spec: './scr/main.py'
-    #     requirements: './scr/requirements.txt'
-    #     options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
-    #     python_arch: ${{ matrix.architecture }}
-
     - name: Build executable
       run: |
         pyinstaller ./scr/main.py --onefile --name "${{ github.event.repository.name }}-${{ matrix.architecture }}"
@@ -51,7 +43,7 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v5.0.0
       with:
-        name: ${{ github.event.repository.name }}-*\
+        name: ${{ github.event.repository.name }}-*
         merge-multiple: true
         path: ./dist
         
