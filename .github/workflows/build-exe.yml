@@ -34,7 +34,7 @@ jobs:
         options: --onefile, --name ${{ github.event.repository.name }}-${{ matrix.architecture }}
         python_arch: ${{ matrix.architecture }}
         
-    - uses: actions/upload-artifact@v4.6.2
+    - uses: actions/upload-artifact@latest
       with: 
         name: '${{ github.event.repository.name }}-${{ matrix.architecture }}'
         path: ./dist/*.exe
