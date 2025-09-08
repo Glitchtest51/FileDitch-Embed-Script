@@ -1,3 +1,6 @@
+> [!WARNING]
+> This script no longer works, Discord has removed Embeds, and FileDitch no longer provides direct links. If you want to try using this check the files.vc branch.
+
 FileDitch-Embed-Script
 =====
 Python tool to automate the creation of embeds on Discord by uploading the file to FileDitch and embeding it with [discord.nfp.is](https://discord.nfp.is)
